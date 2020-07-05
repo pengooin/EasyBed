@@ -1,0 +1,17 @@
+name: EasyBed
+main: io.github.pengooin.easybed.EasyBed
+version: "1.0.0"
+api-version: 1.16
+author: strikemgood
+description: This plugin is designed to make changing to daytime easier on a server with multiple players.
+load: POSTWORLD
+commands:
+  vote:
+    description: This votes to change it to daytime (if a vote is active)
+    usage: /vote
+    permission: easyBed.vote
+    permission-message: You don't have <permission>
+permissions:
+  easyBed.vote:
+    description: Allows you to use the command /vote.
+    default: true
