@@ -6,6 +6,7 @@ import org.bukkit.World;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import org.bukkit.event.world.WorldEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitScheduler;
 
@@ -65,7 +66,7 @@ public class EasyBed extends JavaPlugin{
 				voter.spigot().sendMessage(new TextComponent("EasyBed: You voted to change to daytime"));
 				currentVotes++;
 				if(currentVotes>=votesNeeded) {
-					changeToSunrise();
+					voteSuccess();
 					resetVote();
 				}
 			}
@@ -82,7 +83,7 @@ public class EasyBed extends JavaPlugin{
 			voter.spigot().sendMessage(new TextComponent("EasyBed: You can't start a vote for daytime as someone is already starting/started a vote."));
 		}
 		else {
-			voter.spigot().sendMessage(new TextComponent("EasyBed: Stay in bed for 60 ticks (three seconds) to confirm you want to send a vote to change it to daytime."));
+			voter.spigot().sendMessage(new TextComponent("EasyBed: Stay in bed for 60 ticks (three seconds) to confirm you want to send a vote to change it to daytime and or clear the thunderstorm."));
 			voteInitilizing=true;
 			BukkitScheduler scheduler = getServer().getScheduler();
 	        scheduler.scheduleSyncDelayedTask(this, new Runnable() {
@@ -93,7 +94,7 @@ public class EasyBed extends JavaPlugin{
 	    				voteActive=true;
 	    				votesNeeded=((world.getPlayers().size()/2)+1); //Should be automatically truncated due to using integers, this requires a majority
 	    				currentVotes=0;
-	    				TextComponent message = new TextComponent("EasyBed: " + voter.getDisplayName() + " wants to change to daytime. Click this message, type /vote, or click a bed within 30 "
+	    				TextComponent message = new TextComponent("EasyBed: " + voter.getDisplayName() + " wants to change to daytime and or clear any thunderstorms. Click this message, type /vote, or click a bed within 30 "
 	    						+ "seconds to vote yes for changing to daytime.");
 	    				message.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/vote"));
 	    				message.setColor(net.md_5.bungee.api.ChatColor.GREEN);
@@ -112,13 +113,15 @@ public class EasyBed extends JavaPlugin{
 	        	//@Override The annotation is not working for some reason
 	        	public void run() {
 	        		if(thisId!=currentId) {
+	        			TextComponent failedVoteMessage = new TextComponent("EasyBed: Vote failed.");
+	        			failedVoteMessage.setColor(net.md_5.bungee.api.ChatColor.RED);
 	        			for(Player player: votes.keySet()) {
-	        				player.chat("Vote failed");
+	        				player.spigot().sendMessage(failedVoteMessage);
 	        			}
 	        			resetVote();
 	        		}
 	        	}
-	        }, 600L); //I want this to be 20 seconds, but 400L didn't seem to be that.
+	        }, 700L); //I want this to be 20 seconds, but 400L didn't seem to be that.
 		}
 	}
 	void resetVote() {
@@ -127,7 +130,7 @@ public class EasyBed extends JavaPlugin{
 		currentVotes=0;
 		votesNeeded=0;
 	}
-	void changeToSunrise() {
+	void voteSuccess() {
 		long currentTimeAdjusted = world.getTime() % 24000;
 		if(currentTimeAdjusted > 12541 && currentTimeAdjusted % 24000 < 23458) {
 			long timeToSkip = 0;
@@ -135,14 +138,36 @@ public class EasyBed extends JavaPlugin{
 				timeToSkip = 23000-currentTimeAdjusted;
 				//Check that time is less than 23000 as sleeping sets the time to this
 				//Bukkit.getServer().getPluginManager().callEvent(TimeSkipEvent(world,SkipReason.NIGHT_SKIP,timeToSkip)); These are just call backs they don't do anything
-				TextComponent message = new TextComponent("EasyBed: Setting to daytime!");
-				message.setColor(net.md_5.bungee.api.ChatColor.GOLD);
+				TextComponent daySuccessMessage = new TextComponent("EasyBed: Setting to daytime!");
+				daySuccessMessage.setColor(net.md_5.bungee.api.ChatColor.GOLD);
 				for(Player player: world.getPlayers()) {
-					player.spigot().sendMessage(message);
+					player.spigot().sendMessage(daySuccessMessage);
 				}
 				world.setTime(currentTimeAdjusted+timeToSkip);
 			}
 			//event.getPlayer().getServer().getPluginManager().callEvent(TimeSkipEvent(world,SkipReason.NIGHT_SKIP,world.getTime() % 24000 < 23000 ? (long) 1: (long) 0));
+		}
+		else {
+			TextComponent dayFailedMessage = new TextComponent("EasyBed: Unable to set to daytime.");
+			dayFailedMessage.setColor(net.md_5.bungee.api.ChatColor.GRAY);
+			for(Player player: world.getPlayers()) {
+				player.spigot().sendMessage(dayFailedMessage);
+			}
+		}
+		if(world.hasStorm()) {
+			world.setStorm(false);
+			TextComponent stormSuccessMessage = new TextComponent("EasyBed: Clearing the weather!");
+			stormSuccessMessage.setColor(net.md_5.bungee.api.ChatColor.GOLD);
+			for(Player player: world.getPlayers()) {
+				player.spigot().sendMessage(stormSuccessMessage);
+			}
+		}
+		else {
+			TextComponent stormFailedMessage = new TextComponent("EasyBed: Unable to clear the weather.");
+			stormFailedMessage.setColor(net.md_5.bungee.api.ChatColor.GRAY);
+			for(Player player: world.getPlayers()) {
+				player.spigot().sendMessage(stormFailedMessage);
+			}
 		}
 	}
 }
