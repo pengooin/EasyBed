@@ -1,11 +1,16 @@
 package io.github.pengooin.easybed;
 
+import java.io.File;
 import java.util.HashMap;
 
 import org.bukkit.World;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
+import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
+import org.bukkit.event.world.WorldEvent;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitScheduler;
 
@@ -20,6 +25,12 @@ public class EasyBed extends JavaPlugin{
 	private World world;
 	private boolean voteInitilizing = false;
 	private int currentId = 0;
+	
+	private double percentage = 0;
+	
+	private File file = new File(getDataFolder(), "config.yml");
+	private YamlConfiguration yamlConfig = YamlConfiguration.loadConfiguration(file);
+	
 	@Override
 	public void onEnable() {
 		getLogger().info("onEnable has been invoked!");
@@ -28,12 +39,24 @@ public class EasyBed extends JavaPlugin{
 			playerList.put(player.getName(), playerData(player));
 		}*/
 		votes = new HashMap<Player, Boolean>();
+		
+		
+		this.saveDefaultConfig();
+		this.saveConfig();
+			
 		new EasyBedListener(this);
 	}
 	@Override
 	public void onDisable() {
 		getLogger().info("onDisable has been invoked!");
 	}
+	
+	public void setPercentageFromConfig() {
+		this.percentage = this.getConfig().getDouble("percentage");
+	}
+	
+//	public void saveFIle
+	
 	@Override
 	public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
 		if(cmd.getName().equalsIgnoreCase("vote")) {
@@ -91,6 +114,7 @@ public class EasyBed extends JavaPlugin{
 	            	if(voter.isSleeping()) {
 	    				world = worldGiven;
 	    				voteActive=true;
+	    				// Compute based on config file
 	    				votesNeeded=((world.getPlayers().size()/2)+1); //Should be automatically truncated due to using integers, this requires a majority
 	    				currentVotes=0;
 	    				TextComponent message = new TextComponent("EasyBed: " + voter.getDisplayName() + " wants to change to daytime and or clear any thunderstorms. Click this message, type /vote, or click a bed within 30 "
