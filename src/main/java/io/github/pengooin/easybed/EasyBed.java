@@ -51,6 +51,9 @@ public class EasyBed extends JavaPlugin{
 		// Set the percentage needed of players to sleep.
 		this.setPercentageFromConfig();
 		
+		System.out.println(config);
+		System.out.println(this.percentage);
+		
 		new EasyBedListener(this);
 	}
 	@Override
@@ -64,8 +67,11 @@ public class EasyBed extends JavaPlugin{
 	
 	@Override
 	public void saveDefaultConfig() {
-		// Set the default config value if it does not already exist.
-		this.config.set("percentage", DEFAULT_MAJORITY_PERCENTAGE);
+		// if there is no set value for percentage yet, use default
+		if(percentage != 0) {	
+			// Set the default config value if it does not already exist.
+			this.config.set("percentage", DEFAULT_MAJORITY_PERCENTAGE);
+		}
 		
 		// Then the rest of the code will save it to config.yml.
 		super.saveDefaultConfig();
