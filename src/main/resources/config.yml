@@ -1,0 +1,2 @@
+# Configure the majority percentage required to use /vote to change the time to daytime.
+percentage: 0.51
