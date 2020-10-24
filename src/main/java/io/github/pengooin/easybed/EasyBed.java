@@ -28,8 +28,12 @@ public class EasyBed extends JavaPlugin{
 	
 	private double percentage = 0;
 	
-	private File file = new File(getDataFolder(), "config.yml");
-	private YamlConfiguration yamlConfig = YamlConfiguration.loadConfiguration(file);
+	public static final double DEFAULT_MAJORITY_PERCENTAGE = 0.51;
+	
+	//private File file = new File(getDataFolder(), "config.yml");
+	//private YamlConfiguration yamlConfig = YamlConfiguration.loadConfiguration(file);
+	
+	private FileConfiguration config;
 	
 	@Override
 	public void onEnable() {
@@ -40,10 +44,13 @@ public class EasyBed extends JavaPlugin{
 		}*/
 		votes = new HashMap<Player, Boolean>();
 		
-		
+		// Save default config if it does not already exist, then get the config itself
 		this.saveDefaultConfig();
-		this.saveConfig();
-			
+		config = this.getConfig();
+		
+		// Set the percentage needed of players to sleep.
+		this.setPercentageFromConfig();
+		
 		new EasyBedListener(this);
 	}
 	@Override
@@ -52,10 +59,17 @@ public class EasyBed extends JavaPlugin{
 	}
 	
 	public void setPercentageFromConfig() {
-		this.percentage = this.getConfig().getDouble("percentage");
+		this.percentage = config.getDouble("percentage");
 	}
 	
-//	public void saveFIle
+	@Override
+	public void saveDefaultConfig() {
+		// Set the default config value if it does not already exist.
+		this.config.set("percentage", DEFAULT_MAJORITY_PERCENTAGE);
+		
+		// Then the rest of the code will save it to config.yml.
+		super.saveDefaultConfig();
+	}
 	
 	@Override
 	public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
@@ -115,7 +129,7 @@ public class EasyBed extends JavaPlugin{
 	    				world = worldGiven;
 	    				voteActive=true;
 	    				// Compute based on config file
-	    				votesNeeded=((world.getPlayers().size()/2)+1); //Should be automatically truncated due to using integers, this requires a majority
+	    				votesNeeded=(int) (world.getPlayers().size()*percentage); //Should be automatically truncated due to using integers, this requires a majority
 	    				currentVotes=0;
 	    				TextComponent message = new TextComponent("EasyBed: " + voter.getDisplayName() + " wants to change to daytime and or clear any thunderstorms. Click this message, type /vote, or click a bed within 30 "
 	    						+ "seconds to vote yes for changing to daytime.");
