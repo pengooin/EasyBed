@@ -1,6 +1,6 @@
 name: EasyBed
 main: io.github.pengooin.easybed.EasyBed
-version: "2.0.1"
+version: "2.0.2"
 api-version: 1.16
 author: strikemgood
 description: This plugin is designed to make changing to daytime easier on a server with multiple players.

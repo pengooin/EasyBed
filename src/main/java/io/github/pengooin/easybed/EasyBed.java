@@ -1,11 +1,16 @@
 package io.github.pengooin.easybed;
 
+import java.io.File;
 import java.util.HashMap;
 
 import org.bukkit.World;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
+import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
+import org.bukkit.event.world.WorldEvent;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitScheduler;
 
@@ -20,6 +25,16 @@ public class EasyBed extends JavaPlugin{
 	private World world;
 	private boolean voteInitilizing = false;
 	private int currentId = 0;
+	
+	private double percentage = 0;
+	
+	public static final double DEFAULT_MAJORITY_PERCENTAGE = 0.51;
+	
+	//private File file = new File(getDataFolder(), "config.yml");
+	//private YamlConfiguration yamlConfig = YamlConfiguration.loadConfiguration(file);
+	
+	private FileConfiguration config;
+	
 	@Override
 	public void onEnable() {
 		getLogger().info("onEnable has been invoked!");
@@ -28,12 +43,37 @@ public class EasyBed extends JavaPlugin{
 			playerList.put(player.getName(), playerData(player));
 		}*/
 		votes = new HashMap<Player, Boolean>();
+		
+		// Save default config if it does not already exist, then get the config itself
+		this.saveDefaultConfig();
+		config = this.getConfig();
+		
+		// Set the percentage needed of players to sleep.
+		this.setPercentageFromConfig();
+		
 		new EasyBedListener(this);
 	}
 	@Override
 	public void onDisable() {
 		getLogger().info("onDisable has been invoked!");
 	}
+	
+	public void setPercentageFromConfig() {
+		this.percentage = config.getDouble("percentage");
+	}
+	
+	@Override
+	public void saveDefaultConfig() {
+		// if there is no set value for percentage yet, use default
+		if(percentage != 0) {	
+			// Set the default config value if it does not already exist.
+			this.config.set("percentage", DEFAULT_MAJORITY_PERCENTAGE);
+		}
+		
+		// Then the rest of the code will save it to config.yml.
+		super.saveDefaultConfig();
+	}
+	
 	@Override
 	public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
 		if(cmd.getName().equalsIgnoreCase("vote")) {
@@ -91,7 +131,8 @@ public class EasyBed extends JavaPlugin{
 	            	if(voter.isSleeping()) {
 	    				world = worldGiven;
 	    				voteActive=true;
-	    				votesNeeded=((world.getPlayers().size()/2)+1); //Should be automatically truncated due to using integers, this requires a majority
+	    				// Compute based on config file
+	    				votesNeeded=(int) (world.getPlayers().size()*percentage); //Should be automatically truncated due to using integers, this requires a majority
 	    				currentVotes=0;
 	    				TextComponent message = new TextComponent("EasyBed: " + voter.getDisplayName() + " wants to change to daytime and or clear any thunderstorms. Click this message, type /vote, or click a bed within 30 "
 	    						+ "seconds to vote yes for changing to daytime.");
