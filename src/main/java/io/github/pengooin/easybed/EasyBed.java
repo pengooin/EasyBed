@@ -51,9 +51,6 @@ public class EasyBed extends JavaPlugin{
 		// Set the percentage needed of players to sleep.
 		this.setPercentageFromConfig();
 		
-		System.out.println(config);
-		System.out.println(this.percentage);
-		
 		new EasyBedListener(this);
 	}
 	@Override
