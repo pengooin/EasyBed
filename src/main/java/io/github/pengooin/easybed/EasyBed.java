@@ -132,7 +132,7 @@ public class EasyBed extends JavaPlugin{
 	    				world = worldGiven;
 	    				voteActive=true;
 	    				// Compute based on config file
-	    				votesNeeded=(int) (world.getPlayers().size()*percentage); //Should be automatically truncated due to using integers, this requires a majority
+	    				votesNeeded=(int) Math.ceil(world.getPlayers().size()*percentage); //Should be automatically truncated due to using integers, this requires a majority
 	    				currentVotes=0;
 	    				TextComponent message = new TextComponent("EasyBed: " + voter.getDisplayName() + " wants to change to daytime and or clear any thunderstorms. Click this message, type /vote, or click a bed within 30 "
 	    						+ "seconds to vote yes for changing to daytime.");
